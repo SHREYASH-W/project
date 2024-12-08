@@ -1,35 +1,29 @@
 import React, { useState, useRef } from 'react';
-import { 
-  Upload, 
-  FileText, 
-  Image, 
-  Clock, 
-  Building 
-} from 'lucide-react';
-import { X } from 'lucide-react';  // or other relevant packages
-import { FaFlask } from 'react-icons/fa';  // Flask icon from react-icons
-import "./dashboard.css"
+import { Upload, FileText, Image, Clock, Building, X } from 'lucide-react';
+import { FaFlask } from 'react-icons/fa'; // Flask icon from react-icons
+import "./dashboard.css";
+
 const MultiModelDashboard = () => {
   // State for each model's specific uploads and results
   const [staticDataModel, setStaticDataModel] = useState({
     uploadedFiles: [],
-    results: null
+    results: null,
   });
 
   const [infrastructureAgeModel, setInfrastructureAgeModel] = useState({
     uploadedFiles: [],
     predictedAge: null,
-    remainingLifespan: null
+    remainingLifespan: null,
   });
 
   const [infrastructureImageModel, setInfrastructureImageModel] = useState({
-    uploadedImage: null,
-    infraCondition: null
+    uploadedImages: [], // Changed to match multiple images
+    infraConditions: [],
   });
 
   const [labFacilitiesModel, setLabFacilitiesModel] = useState({
     uploadedFiles: [],
-    results: null
+    results: null,
   });
 
   // Ref for file inputs
@@ -41,102 +35,177 @@ const MultiModelDashboard = () => {
   // Generic file upload handler
   const handleFileUpload = (modelSetter, event) => {
     const files = Array.from(event.target.files);
-    modelSetter(prev => ({
+    modelSetter((prev) => ({
       ...prev,
-      uploadedFiles: [...prev.uploadedFiles, ...files]
+      uploadedFiles: [...prev.uploadedFiles, ...files],
     }));
   };
 
   // Image upload handler for image-based model
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    setInfrastructureImageModel(prev => ({
+    const files = Array.from(event.target.files);
+    setInfrastructureImageModel((prev) => ({
       ...prev,
-      uploadedImage: file
+      uploadedImages: [...prev.uploadedImages, ...files],
     }));
   };
 
   // Remove file handler
   const removeFile = (modelSetter, index) => {
-    modelSetter(prev => ({
+    modelSetter((prev) => ({
       ...prev,
-      uploadedFiles: prev.uploadedFiles.filter((_, i) => i !== index)
+      uploadedFiles: prev.uploadedFiles.filter((_, i) => i !== index),
     }));
   };
 
-  // Simulate model prediction (replace with actual model calls)
-  const runStaticDataModel = () => {
-    setStaticDataModel(prev => ({
+  const removeImage = (index) => {
+    setInfrastructureImageModel((prev) => ({
       ...prev,
-      results: {
-        complexity: 'Medium',
-        recommendation: 'Further investigation needed'
+      uploadedImages: prev.uploadedImages.filter((_, i) => i !== index),
+    }));
+  };
+
+  // Simulation of API calls for each model
+  const runStaticDataModel = async () => {
+    if (staticDataModel.uploadedFiles.length === 0) {
+      alert('Please upload a file first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', staticDataModel.uploadedFiles[0]);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/static-data-model', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze static data');
       }
-    }));
+
+      const result = await response.json();
+      setStaticDataModel((prev) => ({
+        ...prev,
+        results: result,
+      }));
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
   };
 
-  const runInfrastructureAgeModel = () => {
-    setInfrastructureAgeModel(prev => ({
-      ...prev,
-      predictedAge: 25,
-      remainingLifespan: 15
-    }));
-  };
+  const runInfrastructureAgeModel = async () => {
+    if (infrastructureAgeModel.uploadedFiles.length === 0) {
+      alert('Please upload a file first.');
+      return;
+    }
 
-  const runInfrastructureImageModel = () => {
-    setInfrastructureImageModel(prev => ({
-      ...prev,
-      infraCondition: infrastructureImageModel.uploadedImage 
-        ? 'Good Condition' 
-        : 'No image uploaded'
-    }));
-  };
+    const formData = new FormData();
+    formData.append('file', infrastructureAgeModel.uploadedFiles[0]);
 
-  const runLabFacilitiesModel = () => {
-    setLabFacilitiesModel(prev => ({
-      ...prev,
-      results: {
-        safetyRating: 'High',
-        equipmentStatus: 'Well-maintained'
+    try {
+      const response = await fetch('http://localhost:3000/api/infrastructure-age-model', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to predict infrastructure age');
       }
-    }));
+
+      const result = await response.json();
+      setInfrastructureAgeModel((prev) => ({
+        ...prev,
+        predictedAge: result.predictedAge,
+        remainingLifespan: result.remainingLifespan,
+      }));
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
   };
 
-  // Render file upload section
-  const FileUploadSection = ({ 
-    files, 
-    fileRef, 
-    onUpload, 
-    onRemove, 
-    title, 
-    icon: Icon 
-  }) => (
+  const runInfrastructureImageModel = async () => {
+    if (infrastructureImageModel.uploadedImages.length === 0) {
+      alert('Please upload an image first.');
+      return;
+    }
+
+    const formData = new FormData();
+    infrastructureImageModel.uploadedImages.forEach((image) =>
+      formData.append('images', image)
+    );
+
+    try {
+      const response = await fetch('http://localhost:3000/api/infrastructure-image-model', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze infrastructure images');
+      }
+
+      const result = await response.json();
+      setInfrastructureImageModel((prev) => ({
+        ...prev,
+        infraConditions: result.results.map((res) => res.condition),
+      }));
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const runLabFacilitiesModel = async () => {
+    if (labFacilitiesModel.uploadedFiles.length === 0) {
+      alert('Please upload a file first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', labFacilitiesModel.uploadedFiles[0]);
+
+    try {
+      const response = await fetch('http://localhost:3000/api/lab-facilities-model', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze lab facilities');
+      }
+
+      const result = await response.json();
+      setLabFacilitiesModel((prev) => ({
+        ...prev,
+        results: result,
+      }));
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  // File upload section component
+  const FileUploadSection = ({ files, fileRef, onUpload, onRemove, title, icon: Icon }) => (
     <div className="model-section">
       <h3>{title}</h3>
-      <input 
-        type="file" 
+      <input
+        type="file"
         ref={fileRef}
-        onChange={onUpload} 
+        onChange={onUpload}
         className="hidden-file-input"
         multiple
       />
-      <button 
-        onClick={() => fileRef.current.click()}
-        className="upload-button"
-      >
+      <button onClick={() => fileRef.current.click()} className="upload-button">
         <Icon className="mr-2" /> Upload Documents
       </button>
-
       {files.length > 0 && (
         <div className="uploaded-files">
           {files.map((file, index) => (
             <div key={index} className="file-item">
               <FileText className="file-icon" />
               <span>{file.name}</span>
-              <button 
-                onClick={() => onRemove(index)}
-                className="remove-file"
-              >
+              <button onClick={() => onRemove(index)} className="remove-file">
                 <X />
               </button>
             </div>
@@ -148,17 +217,13 @@ const MultiModelDashboard = () => {
 
   return (
     <div className="dashboard">
-      <h1 className="dashboard-title">
-        University Infrastructure Multi-Model Analysis
-      </h1>
-
+      <h1 className="dashboard-title">University Infrastructure Multi-Model Analysis</h1>
       {/* Static Data Model */}
       <div className="model-container">
         <h2>
-          <Building className="model-icon" /> 
-          Static Data Infrastructure Model
+          <Building className="model-icon" /> Static Data Infrastructure Model
         </h2>
-        <FileUploadSection 
+        <FileUploadSection
           files={staticDataModel.uploadedFiles}
           fileRef={staticDataFileRef}
           onUpload={(e) => handleFileUpload(setStaticDataModel, e)}
@@ -166,10 +231,7 @@ const MultiModelDashboard = () => {
           title="Static Data Upload"
           icon={FileText}
         />
-        <button 
-          onClick={runStaticDataModel}
-          className="analyze-button"
-        >
+        <button onClick={runStaticDataModel} className="analyze-button">
           Analyze Static Data
         </button>
         {staticDataModel.results && (
@@ -180,8 +242,8 @@ const MultiModelDashboard = () => {
         )}
       </div>
 
-      {/* Infrastructure Age Model */}
-      <div className="model-container">
+       {/* Infrastructure Age Model */}
+       <div className="model-container">
         <h2>
           <Clock className="model-icon" /> 
           Infrastructure Age Prediction Model
@@ -210,44 +272,53 @@ const MultiModelDashboard = () => {
 
       {/* Infrastructure Image Model */}
       <div className="model-container">
-        <h2>
-          <Image className="model-icon" /> 
-          Infrastructure Image Condition Model
-        </h2>
-        <input 
-          type="file" 
-          ref={infrastructureImageFileRef}
-          onChange={handleImageUpload} 
-          accept="image/*"
-          className="hidden-file-input"
+  <h2>
+    <Image className="model-icon" />
+    Infrastructure Image Condition Model
+  </h2>
+  <input
+    type="file"
+    ref={infrastructureImageFileRef}
+    onChange={handleImageUpload}
+    accept="image/*"
+    multiple
+    className="hidden-file-input"
+  />
+  <button
+    onClick={() => infrastructureImageFileRef.current.click()}
+    className="upload-button"
+  >
+    <Image className="mr-2" /> Upload Infrastructure Images
+  </button>
+  {infrastructureImageModel.uploadedImages.length > 0 && (
+    <div className="uploaded-images">
+      {infrastructureImageModel.uploadedImages.map((image, index) => (
+        <img
+          key={index}
+          src={URL.createObjectURL(image)}
+          alt={`Uploaded Infrastructure ${index + 1}`}
+          className="preview-image"
         />
-        <button 
-          onClick={() => infrastructureImageFileRef.current.click()}
-          className="upload-button"
-        >
-          <Image className="mr-2" /> Upload Infrastructure Image
-        </button>
-        {infrastructureImageModel.uploadedImage && (
-          <div className="uploaded-image">
-            <img 
-              src={URL.createObjectURL(infrastructureImageModel.uploadedImage)}
-              alt="Uploaded Infrastructure"
-              className="preview-image"
-            />
-          </div>
-        )}
-        <button 
-          onClick={runInfrastructureImageModel}
-          className="analyze-button"
-        >
-          Analyze Image Condition
-        </button>
-        {infrastructureImageModel.infraCondition && (
-          <div className="model-results">
-            <p>Infrastructure Condition: {infrastructureImageModel.infraCondition}</p>
-          </div>
-        )}
-      </div>
+      ))}
+    </div>
+  )}
+  <button
+    onClick={runInfrastructureImageModel}
+    className="analyze-button"
+    disabled={infrastructureImageModel.uploadedImages.length === 0}
+  >
+    Analyze Images Condition
+  </button>
+  {infrastructureImageModel.infraConditions && (
+    <div className="model-results">
+      {infrastructureImageModel.infraConditions.map((condition, index) => (
+        <p key={index}>
+          Infrastructure Condition {index + 1}: {condition}
+        </p>
+      ))}
+    </div>
+  )}
+</div>
 
       {/* Lab Facilities Model */}
       <div className="model-container">

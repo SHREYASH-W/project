@@ -1,0 +1,110 @@
+:root {
+    --color-white: #ffffff;
+    --color-navy: #1a2b52;
+    --color-dark-blue: #0f4b8a;
+    --color-bright-blue: #00bbf1;
+    --color-light-blue: #e6f2ff;
+    --transition-speed: 0.3s;
+    --border-radius: 12px;
+  }
+  
+  .insights-container {
+    background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-dark-blue) 100%);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 15px 30px rgba(15, 75, 138, 0.2);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .insights-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .insights-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+  
+  .insight-card {
+    background-color: var(--color-white);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all var(--transition-speed) ease;
+    box-shadow: 0 10px 20px rgba(15, 75, 138, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .insight-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, var(--color-navy), var(--color-bright-blue));
+    transition: transform var(--transition-speed) ease;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  
+  .insight-card:hover::before {
+    transform: scaleX(1);
+  }
+  
+  .insight-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(15, 75, 138, 0.2);
+  }
+  
+  .insight-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: contain;
+    background-color: var(--color-light-blue);
+    padding: 1rem;
+    margin: 0 auto 1rem;
+    transition: transform var(--transition-speed) ease;
+    box-shadow: 0 6px 12px rgba(15, 75, 138, 0.1);
+  }
+  
+  .insight-card:hover .insight-image {
+    transform: scale(1.1) rotate(5deg);
+  }
+  
+  .insight-heading {
+    color: var(--color-navy);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color var(--transition-speed) ease;
+  }
+  
+  .insight-card:hover .insight-heading {
+    color: var(--color-dark-blue);
+  }
+  
+  .insight-value {
+    color: var(--color-bright-blue);
+    font-size: 1.5rem;
+    font-weight: 800;
+    transition: color var(--transition-speed) ease;
+  }
+  
+  .insight-card:hover .insight-value {
+    color: var(--color-navy);
+  }

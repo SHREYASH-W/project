@@ -1,16 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import HomePage from './components/home'; // import the HomePage component
-import MultiModelDashboard from './components/dashboard'; // import the MultiModelDashboard component
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Insights from './components/insights';
+import HomePage from './components/home';
+import MultiModelDashboard from './components/dashboard';
+import Navigation from './components/navigation';
 
-const App = () => {
+function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/dashboard" element={<MultiModelDashboard />} />
-      </Routes>
+      <div>
+        <Navigation /> {/* Optional navigation component */}
+        <Routes>
+          <Route path="/" element={<MultiModelDashboard />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/home" element={<HomePage />} />
+        </Routes>
+      </div>
     </Router>
   );
-};
+}
+
 export default App;
